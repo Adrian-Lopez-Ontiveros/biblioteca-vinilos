@@ -138,8 +138,8 @@ function App() {
         
         {/* CABECERA ESTILO BIBLIOTECA */}
         <header style={estilos.cabecera}>
-          <h1 style={estilos.tituloApp}>Archivo Musical</h1>
-          <p style={estilos.subtituloApp}>Catálogo de Vinilos</p>
+          <h1 style={estilos.tituloApp}>Los Vinilos de Edu</h1>
+          <p style={estilos.subtituloApp}>Colección Personal</p>
         </header>
 
         {vista !== 'detalle' && (
@@ -267,14 +267,14 @@ const estilos = {
   contenedor: { fontFamily: '"Georgia", "Times New Roman", serif', maxWidth: '500px', margin: '0 auto', padding: '20px', color: '#2C2A29', paddingBottom: '60px' },
   
   cabecera: { textAlign: 'center', marginBottom: '30px', paddingBottom: '20px', borderBottom: '1px solid #D6D0C4' },
-  tituloApp: { fontSize: '32px', margin: '0 0 5px 0', color: '#1A1818', fontWeight: 'normal' },
+  tituloApp: { fontSize: '38px', margin: '0 0 5px 0', color: '#1A1818', fontWeight: 'bold', fontStyle: 'italic', letterSpacing: '1px', textShadow: '2px 2px 0px #D6D0C4' },
   subtituloApp: { fontSize: '16px', margin: 0, color: '#8B7355', fontStyle: 'italic' },
   
   navegacion: { display: 'flex', gap: '20px', marginBottom: '30px', justifyContent: 'center' },
   botonNav: { background: 'none', border: 'none', fontSize: '18px', fontFamily: 'inherit', padding: '10px 15px', cursor: 'pointer', transition: 'all 0.2s' },
   
   // Galería
-  cuadricula: { display: 'grid', gridTemplateColumns: '1fr', gap: '25px' }, // 1 columna para que se lea mejor todo
+  cuadricula: { display: 'grid', gridTemplateColumns: '1fr', gap: '25px' }, 
   tarjeta: { backgroundColor: '#FFFFFF', borderRadius: '4px', display: 'flex', padding: '15px', boxShadow: '0 4px 6px rgba(0,0,0,0.04)', border: '1px solid #EAE6DF', cursor: 'pointer' },
   portadita: { width: '90px', height: '90px', objectFit: 'cover', borderRadius: '2px', border: '1px solid #EAE6DF', flexShrink: 0 },
   portadaVacia: { width: '90px', height: '90px', backgroundColor: '#F4F1EA', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid #EAE6DF' },
