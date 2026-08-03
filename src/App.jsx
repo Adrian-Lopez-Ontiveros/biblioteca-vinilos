@@ -4,7 +4,7 @@ import { tema } from './theme'
 import BottomNav from './components/BottomNav'
 import Inicio from './views/Inicio'
 import Coleccion from './views/Coleccion'
-import Anadir from './views/Anadir'
+import Anadir from './views/Anadir' // <- Aquí importamos la nueva vista
 
 function App() {
   const [vistaActual, setVistaActual] = useState('inicio') 
@@ -36,6 +36,7 @@ function App() {
           <Coleccion vinilos={vinilos} setVistaActual={setVistaActual} />
         )}
 
+        {/* Aquí es donde antes estaba el texto de Próximamente */}
         {vistaActual === 'añadir' && (
           <Anadir setVistaActual={setVistaActual} refrescarVinilos={obtenerVinilos} />
         )}
