@@ -1,6 +1,6 @@
 import { tema } from '../theme'
 
-export default function Inicio({ vinilos, setVistaActual }) {
+export default function Inicio({ vinilos, setVistaActual, abrirDetalle }) {
   // Cálculos rápidos para las estadísticas de Edu
   const artistasUnicos = new Set(vinilos.map(v => v.autor).filter(Boolean)).size
   const generosUnicos = new Set(vinilos.map(v => v.genero).filter(Boolean)).size
@@ -41,7 +41,7 @@ export default function Inicio({ vinilos, setVistaActual }) {
         
         <div style={estilos.carrusel}>
           {recientes.map(vinilo => (
-            <div key={vinilo.id} style={estilos.tarjetaReciente} onClick={() => console.log('Abrir detalle')}>
+            <div key={vinilo.id} style={estilos.tarjetaReciente} onClick={() => abrirDetalle(vinilo)}>
               <img 
                 src={vinilo.imagen_url || 'https://via.placeholder.com/150/1E1E1E/FFFFFF?text=🎵'} 
                 alt={vinilo.titulo} 
