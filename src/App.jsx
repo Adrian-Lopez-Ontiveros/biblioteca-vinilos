@@ -4,6 +4,7 @@ import { tema } from './theme'
 import BottomNav from './components/BottomNav'
 import Inicio from './views/Inicio'
 import Coleccion from './views/Coleccion'
+import Anadir from './views/Anadir'
 
 function App() {
   const [vistaActual, setVistaActual] = useState('inicio') 
@@ -36,10 +37,7 @@ function App() {
         )}
 
         {vistaActual === 'añadir' && (
-          <div style={{padding: '20px', textAlign: 'center'}}>
-            <h2 style={{marginTop: '50px'}}>Formulario oscuro</h2>
-            <p style={{color: tema.textoSecundario}}>Próximamente...</p>
-          </div>
+          <Anadir setVistaActual={setVistaActual} refrescarVinilos={obtenerVinilos} />
         )}
       </div>
 
