@@ -5,12 +5,12 @@ import BottomNav from './components/BottomNav'
 import Inicio from './views/Inicio'
 import Coleccion from './views/Coleccion'
 import Anadir from './views/Anadir'
-import Detalle from './views/Detalle' // IMPORTAMOS EL DETALLE
+import Detalle from './views/Detalle'
 
 function App() {
   const [vistaActual, setVistaActual] = useState('inicio') 
   const [vinilos, setVinilos] = useState([])
-  const [viniloSeleccionado, setViniloSeleccionado] = useState(null) // NUEVO ESTADO
+  const [viniloSeleccionado, setViniloSeleccionado] = useState(null)
 
   useEffect(() => {
     obtenerVinilos()
@@ -25,39 +25,39 @@ function App() {
     if (!error) setVinilos(data)
   }
 
-  // FUNCIÓN PARA ABRIR LA FICHA DESDE CUALQUIER SITIO
   const abrirDetalle = (vinilo) => {
     setViniloSeleccionado(vinilo)
     setVistaActual('detalle')
   }
 
   return (
-    
+    <div style={estilos.app}>
       
-      
+      <div style={estilos.contenido}>
         {vistaActual === 'inicio' && (
-          
+          <Inicio vinilos={vinilos} setVistaActual={setVistaActual} abrirDetalle={abrirDetalle} />
         )}
         
         {vistaActual === 'coleccion' && (
-          
+          <Coleccion vinilos={vinilos} abrirDetalle={abrirDetalle} />
         )}
 
         {vistaActual === 'añadir' && (
-          
+          <Anadir setVistaActual={setVistaActual} refrescarVinilos={obtenerVinilos} />
         )}
 
-        {/* AQUÍ CARGAMOS LA VISTA DETALLE */}
         {vistaActual === 'detalle' && viniloSeleccionado && (
-           setVistaActual('coleccion')} 
+          <Detalle 
+            vinilo={viniloSeleccionado} 
+            volver={() => setVistaActual('coleccion')} 
             refrescarVinilos={obtenerVinilos} 
           />
         )}
-      
+      </div>
 
+      <BottomNav vistaActual={vistaActual} setVistaActual={setVistaActual} />
       
-      
-    
+    </div>
   )
 }
 
