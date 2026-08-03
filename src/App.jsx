@@ -13,7 +13,7 @@ function App() {
   const [viniloSeleccionado, setViniloSeleccionado] = useState(null)
 
   useEffect(() => {
-    obtenerVinilos() 
+    obtenerVinilos()
   }, [])
 
   const obtenerVinilos = async () => {
@@ -42,8 +42,14 @@ function App() {
           <Coleccion vinilos={vinilos} abrirDetalle={abrirDetalle} />
         )}
 
+        {/* MODO AÑADIR NUEVO */}
         {vistaActual === 'añadir' && (
-          <Anadir setVistaActual={setVistaActual} refrescarVinilos={obtenerVinilos} />
+          <Anadir key="crear" setVistaActual={setVistaActual} refrescarVinilos={obtenerVinilos} />
+        )}
+
+        {/* MODO EDITAR EXISTENTE */}
+        {vistaActual === 'editar' && viniloSeleccionado && (
+          <Anadir key="editar" setVistaActual={setVistaActual} refrescarVinilos={obtenerVinilos} viniloAEditar={viniloSeleccionado} />
         )}
 
         {vistaActual === 'detalle' && viniloSeleccionado && (
@@ -51,6 +57,7 @@ function App() {
             vinilo={viniloSeleccionado} 
             volver={() => setVistaActual('coleccion')} 
             refrescarVinilos={obtenerVinilos} 
+            irAEditar={() => setVistaActual('editar')} // Le pasamos la función para ir a editar
           />
         )}
       </div>
