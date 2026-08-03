@@ -1,67 +1,81 @@
 import { tema } from '../theme'
 
 export default function Inicio({ vinilos, setVistaActual, abrirDetalle }) {
-  const totalVinilos = vinilos.length
-  const totalEscuchas = vinilos.reduce((total, v) => total + (v.historial_escuchas ? v.historial_escuchas.length : 0), 0)
-  
-  // Cogemos los 5 últimos añadidos para el carrusel
-  const recientes = vinilos.slice(0, 5)
+  // Cálculos rápidos para las estadísticas de Edu
+  const artistasUnicos = new Set(vinilos.map(v => v.autor).filter(Boolean)).size
+  const generosUnicos = new Set(vinilos.map(v => v.genero).filter(Boolean)).size
+  const recientes = vinilos.slice(0, 5) // Mostramos solo los 5 más recientes
 
   return (
     <div style={estilos.contenedor}>
-      <h1 style={estilos.tituloPrincipal}>Los Vinilos De Edu</h1>
-      
-      <div style={estilos.statsContainer}>
-        <div style={estilos.statCard}>
-          <span style={estilos.statNumero}>{totalVinilos}</span>
-          <span style={estilos.statTexto}>Vinilos</span>
+      <header style={estilos.cabecera}>
+        <h1 style={estilos.titulo}>Los Vinilos De<br/>Edu</h1>
+      </header>
+
+      {/* Tarjetas de estadísticas */}
+      <div style={estilos.gridStats}>
+        <div style={estilos.tarjetaStat}>
+          <div style={estilos.iconoStat}>📀</div>
+          <div style={estilos.valorStat}>{vinilos.length}</div>
+          <div style={estilos.labelStat}>vinilos</div>
         </div>
-        <div style={estilos.statCard}>
-          <span style={estilos.statNumero}>{totalEscuchas}</span>
-          <span style={estilos.statTexto}>Escuchas</span>
+        <div style={estilos.tarjetaStat}>
+          <div style={estilos.iconoStat}>🎵</div>
+          <div style={estilos.valorStat}>{artistasUnicos}</div>
+          <div style={estilos.labelStat}>artistas</div>
+        </div>
+        <div style={estilos.tarjetaStat}>
+          <div style={estilos.iconoStat}>🎛️</div>
+          <div style={estilos.valorStat}>{generosUnicos}</div>
+          <div style={estilos.labelStat}>géneros</div>
         </div>
       </div>
 
-      <div style={estilos.seccionHeader}>
-        <h2 style={estilos.subtitulo}>Últimos añadidos</h2>
-        <button style={estilos.btnVerTodos} onClick={() => setVistaActual('coleccion')}>
-          Ver todos
-        </button>
-      </div>
-
-      <div style={estilos.carrusel}>
-        {recientes.length === 0 ? (
-          <p style={estilos.textoVacio}>Añade tu primer vinilo para verlo aquí.</p>
-        ) : (
-          recientes.map(vinilo => (
-            <div key={vinilo.id} style={estilos.tarjetaCarrusel} onClick={() => abrirDetalle(vinilo)}>
+      {/* Colección Reciente (Carrusel Horizontal) */}
+      <section style={estilos.seccion}>
+        <div style={estilos.cabeceraSeccion}>
+          <h2 style={estilos.tituloSeccion}>Colección reciente</h2>
+          <button style={estilos.botonVerTodo} onClick={() => setVistaActual('coleccion')}>Ver todo</button>
+        </div>
+        
+        <div style={estilos.carrusel}>
+          {recientes.map(vinilo => (
+            <div key={vinilo.id} style={estilos.tarjetaReciente} onClick={() => abrirDetalle(vinilo)}>
               <img 
                 src={vinilo.imagen_url || 'https://via.placeholder.com/150/1E1E1E/FFFFFF?text=🎵'} 
                 alt={vinilo.titulo} 
-                style={estilos.portadaCarrusel} 
+                style={estilos.portadaReciente} 
               />
-              <p style={estilos.tituloCarrusel}>{vinilo.titulo}</p>
+              <h3 style={estilos.tituloVinilo}>{vinilo.titulo}</h3>
+              <p style={estilos.autorVinilo}>{vinilo.autor}</p>
             </div>
-          ))
-        )}
-      </div>
+          ))}
+        </div>
+      </section>
     </div>
   )
 }
 
 const estilos = {
   contenedor: { padding: '20px' },
-  tituloPrincipal: { color: tema.acento, fontFamily: tema.fuentePrincipal, fontSize: '32px', marginBottom: '25px', textAlign: 'center' },
-  statsContainer: { display: 'flex', gap: '15px', marginBottom: '35px' },
-  statCard: { flex: 1, backgroundColor: tema.superficieClara, borderRadius: '16px', padding: '20px', display: 'flex', flexDirection: 'column', alignItems: 'center', boxShadow: '0 4px 10px rgba(0,0,0,0.2)' },
-  statNumero: { color: tema.acento, fontSize: '36px', fontWeight: 'bold', fontFamily: tema.fuentePrincipal, marginBottom: '5px' },
-  statTexto: { color: tema.textoSecundario, fontSize: '14px', textTransform: 'uppercase', letterSpacing: '1px' },
-  seccionHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' },
-  subtitulo: { color: tema.textoPrincipal, fontSize: '20px', margin: 0 },
-  btnVerTodos: { background: 'none', border: 'none', color: tema.acento, fontSize: '14px', cursor: 'pointer', fontWeight: 'bold' },
-  carrusel: { display: 'flex', gap: '15px', overflowX: 'auto', paddingBottom: '10px', scrollbarWidth: 'none' },
-  tarjetaCarrusel: { minWidth: '120px', display: 'flex', flexDirection: 'column', gap: '8px', cursor: 'pointer' },
-  portadaCarrusel: { width: '120px', height: '120px', borderRadius: '12px', objectFit: 'cover', boxShadow: '0 4px 8px rgba(0,0,0,0.3)' },
-  tituloCarrusel: { color: tema.textoPrincipal, fontSize: '14px', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', textAlign: 'center' },
-  textoVacio: { color: tema.textoSecundario, fontStyle: 'italic' }
+  cabecera: { marginBottom: '30px', marginTop: '10px' },
+  titulo: { fontSize: '36px', margin: '0 0 10px 0', fontFamily: tema.fuentePrincipal, lineHeight: '1.1' },
+  subtitulo: { fontSize: '14px', color: tema.textoSecundario, margin: 0 },
+  
+  gridStats: { display: 'flex', gap: '10px', marginBottom: '40px', overflowX: 'auto', paddingBottom: '10px', scrollbarWidth: 'none' },
+  tarjetaStat: { flex: '1', minWidth: '95px', backgroundColor: tema.superficieClara, padding: '15px 10px', borderRadius: '12px', textAlign: 'center' },
+  iconoStat: { fontSize: '24px', marginBottom: '8px' },
+  valorStat: { fontSize: '22px', fontWeight: 'bold', color: tema.textoPrincipal },
+  labelStat: { fontSize: '12px', color: tema.textoSecundario },
+
+  seccion: { marginBottom: '30px' },
+  cabeceraSeccion: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' },
+  tituloSeccion: { fontSize: '18px', fontWeight: 'bold', margin: 0 },
+  botonVerTodo: { background: 'none', border: 'none', color: tema.textoSecundario, fontSize: '14px', cursor: 'pointer' },
+
+  carrusel: { display: 'flex', gap: '15px', overflowX: 'auto', paddingBottom: '15px', scrollSnapType: 'x mandatory', scrollbarWidth: 'none' },
+  tarjetaReciente: { minWidth: '140px', width: '140px', scrollSnapAlign: 'start', cursor: 'pointer' },
+  portadaReciente: { width: '140px', height: '140px', objectFit: 'cover', borderRadius: '8px', marginBottom: '10px', backgroundColor: tema.superficieClara },
+  tituloVinilo: { fontSize: '14px', margin: '0 0 4px 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' },
+  autorVinilo: { fontSize: '12px', color: tema.textoSecundario, margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }
 }
