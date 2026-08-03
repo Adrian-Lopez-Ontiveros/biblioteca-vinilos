@@ -13,7 +13,7 @@ function App() {
   const [viniloSeleccionado, setViniloSeleccionado] = useState(null)
 
   useEffect(() => {
-    obtenerVinilos()
+    obtenerVinilos() 
   }, [])
 
   const obtenerVinilos = async () => {
