@@ -6,11 +6,12 @@ export default function Detalle({ vinilo, volver, refrescarVinilos }) {
   const [registrando, setRegistrando] = useState(false)
   const [viniloActual, setViniloActual] = useState(vinilo)
 
-  // FUNCIÓN CORREGIDA: Guarda en el array de la propia tabla vinilos
+  // Función para registrar la escucha
   const registrarEscucha = async () => {
     setRegistrando(true)
     const ahora = new Date().toISOString()
     const historialActual = viniloActual.historial_escuchas || []
+    // Añadimos la nueva fecha al principio para que las más recientes salgan primero
     const nuevoHistorial = [ahora, ...historialActual]
 
     const { error } = await supabase
@@ -22,9 +23,8 @@ export default function Detalle({ vinilo, volver, refrescarVinilos }) {
       .eq('id', viniloActual.id)
 
     if (!error) {
-      // Actualizamos la vista al instante sin tener que recargar
       setViniloActual({ ...viniloActual, ultima_escucha: ahora, historial_escuchas: nuevoHistorial })
-      refrescarVinilos() // Actualiza la lista principal de fondo
+      refrescarVinilos() 
       alert('¡Escucha registrada correctamente! 🎧')
     } else {
       alert('Hubo un error al registrar la escucha.')
@@ -38,28 +38,40 @@ export default function Detalle({ vinilo, volver, refrescarVinilos }) {
     return '★'.repeat(puntos) + '☆'.repeat(5 - puntos)
   }
 
-  // Preparamos las canciones (quitamos líneas vacías)
+  // Preparamos las canciones
   const cancionesArray = viniloActual.canciones 
     ? viniloActual.canciones.split('\n').filter(c => c.trim() !== '') 
     : []
 
+  // Función para poner la fecha bonita (ej: 3 ago 2026, 17:40)
+  const formatearFecha = (isoString) => {
+    const fecha = new Date(isoString)
+    return fecha.toLocaleDateString('es-ES', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    })
+  }
+
   return (
     <div style={estilos.contenedor}>
       
-      {/* CABECERA: Botón volver y contador de escuchas */}
+      {/* CABECERA: Botón volver y contador de escuchas con icono representativo */}
       <div style={estilos.header}>
         <button style={estilos.btnVolver} onClick={volver}>
           {"<"}
         </button>
-        <div style={estilos.corazon}>
-          {viniloActual.historial_escuchas ? viniloActual.historial_escuchas.length : 0} 🤍
+        <div style={estilos.contadorEscuchas}>
+          {viniloActual.historial_escuchas ? viniloActual.historial_escuchas.length : 0} 🎧
         </div>
       </div>
 
       {/* ARTISTA SUPERIOR */}
       <h2 style={estilos.artistaPrincipal}>{viniloActual.autor}</h2>
 
-      {/* TARJETA HERO (Diseño horizontal exacto a tu imagen 3) */}
+      {/* TARJETA HERO */}
       <div style={estilos.tarjetaHero}>
         <img 
           src={viniloActual.imagen_url || 'https://via.placeholder.com/150/1E1E1E/FFFFFF?text=🎵'} 
@@ -77,12 +89,11 @@ export default function Detalle({ vinilo, volver, refrescarVinilos }) {
         </div>
       </div>
 
-      {/* LISTA DE CANCIONES OSCURA */}
+      {/* LISTA DE CANCIONES OSCURA (Sin el icono de Play) */}
       <h3 style={estilos.tituloSeccion}>Canciones</h3>
-      <div style={estilos.cajaCanciones}>
+      <div style={estilos.cajaSeccion}>
         {cancionesArray.length > 0 ? (
           cancionesArray.map((cancion, index) => {
-            // Limpiamos si Edu ya le puso el "1." para no duplicar números
             const nombreLimpio = cancion.replace(/^\d+[\.\-]\s*/, '')
             const esUltimo = index === cancionesArray.length - 1
 
@@ -90,19 +101,43 @@ export default function Detalle({ vinilo, volver, refrescarVinilos }) {
               <div 
                 key={index} 
                 style={{
-                  ...estilos.itemCancion, 
-                  borderBottom: esUltimo ? 'none' : `1px solid ${tema.borde}`
+                  ...estilos.itemLista, 
+                  borderBottom: esUltimo ? 'none' : '1px solid rgba(255,255,255,0.05)'
                 }}
               >
-                <span style={estilos.textoCancion}>
+                <span style={estilos.textoLista}>
                   {index + 1}. {nombreLimpio}
                 </span>
-                <span style={estilos.iconoPlay}>▶</span>
               </div>
             )
           })
         ) : (
           <p style={estilos.textoVacio}>No hay canciones añadidas.</p>
+        )}
+      </div>
+
+      {/* HISTORIAL DE ESCUCHAS */}
+      <h3 style={estilos.tituloSeccion}>Historial de Escuchas</h3>
+      <div style={estilos.cajaSeccion}>
+        {viniloActual.historial_escuchas && viniloActual.historial_escuchas.length > 0 ? (
+          viniloActual.historial_escuchas.map((fechaIso, index) => {
+            const esUltimo = index === viniloActual.historial_escuchas.length - 1
+            return (
+              <div 
+                key={index}
+                style={{
+                  ...estilos.itemLista,
+                  borderBottom: esUltimo ? 'none' : '1px solid rgba(255,255,255,0.05)'
+                }}
+              >
+                <span style={estilos.textoLista}>
+                  {formatearFecha(fechaIso)}
+                </span>
+              </div>
+            )
+          })
+        ) : (
+          <p style={estilos.textoVacio}>Aún no hay registros. ¡Dale al botón para estrenarlo!</p>
         )}
       </div>
 
@@ -140,7 +175,7 @@ const estilos = {
     padding: 0,
     fontWeight: 'bold'
   },
-  corazon: {
+  contadorEscuchas: {
     fontSize: '20px',
     color: tema.textoPrincipal,
     fontWeight: 'bold',
@@ -150,7 +185,7 @@ const estilos = {
   },
   artistaPrincipal: {
     fontSize: '22px',
-    color: tema.acento, // Color dorado/champagne
+    color: tema.acento,
     margin: '0 0 15px 0',
     fontFamily: tema.fuentePrincipal
   },
@@ -196,28 +231,20 @@ const estilos = {
     color: tema.textoPrincipal,
     marginBottom: '12px'
   },
-  cajaCanciones: {
+  cajaSeccion: {
     backgroundColor: tema.superficieClara,
     borderRadius: '16px',
     padding: '10px 15px',
     marginBottom: '30px'
   },
-  itemCancion: {
+  itemLista: {
     display: 'flex',
-    justifyContent: 'space-between',
     alignItems: 'center',
     padding: '12px 0',
   },
-  textoCancion: {
+  textoLista: {
     fontSize: '15px',
     color: tema.textoPrincipal
-  },
-  iconoPlay: {
-    color: tema.acento,
-    fontSize: '12px',
-    backgroundColor: tema.superficie,
-    padding: '6px 8px',
-    borderRadius: '50%'
   },
   textoVacio: {
     color: tema.textoSecundario,
@@ -228,8 +255,8 @@ const estilos = {
   btnEscuchar: {
     width: '100%',
     padding: '16px',
-    backgroundColor: tema.acento, // Fondo dorado
-    color: '#000', // Texto negro para contraste
+    backgroundColor: tema.acento,
+    color: '#000',
     border: 'none',
     borderRadius: '30px',
     fontSize: '16px',
