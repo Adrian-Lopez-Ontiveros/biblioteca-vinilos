@@ -6,6 +6,10 @@ function App() {
   const [vinilos, setVinilos] = useState([])
   const [viniloSeleccionado, setViniloSeleccionado] = useState(null)
   
+  // Nuevos estados para el menú y la edición
+  const [menuAbierto, setMenuAbierto] = useState(null)
+  const [idEditando, setIdEditando] = useState(null)
+  
   const [titulo, setTitulo] = useState('')
   const [autor, setAutor] = useState('')
   const [duracion, setDuracion] = useState('')
@@ -35,6 +39,8 @@ function App() {
 
     try {
       let imagenUrl = ''
+      
+      // Si subimos un archivo nuevo, lo guardamos en el storage
       if (archivo) {
         const extension = archivo.name.split('.').pop()
         const nombreArchivo = `${Date.now()}.${extension}`
@@ -52,24 +58,42 @@ function App() {
         imagenUrl = urlData.publicUrl
       }
 
-      const { error: errorBaseDatos } = await supabase
-        .from('vinilos')
-        .insert([{ 
-          titulo, 
-          autor, 
-          duracion, 
-          imagen_url: imagenUrl,
-          historial_escuchas: [] // Inicializamos el historial vacío
-        }])
+      if (idEditando) {
+        // MODO EDICIÓN
+        const datosActualizados = { titulo, autor, duracion }
+        if (imagenUrl) datosActualizados.imagen_url = imagenUrl // Solo actualiza imagen si subió una nueva
 
-      if (errorBaseDatos) throw errorBaseDatos
+        const { error: errorBaseDatos } = await supabase
+          .from('vinilos')
+          .update(datosActualizados)
+          .eq('id', idEditando)
 
-      setMensaje('Obra añadida al archivo 🎵')
+        if (errorBaseDatos) throw errorBaseDatos
+        setMensaje('Obra actualizada correctamente 🎵')
+
+      } else {
+        // MODO CREACIÓN
+        const { error: errorBaseDatos } = await supabase
+          .from('vinilos')
+          .insert([{ 
+            titulo, 
+            autor, 
+            duracion, 
+            imagen_url: imagenUrl,
+            historial_escuchas: [] 
+          }])
+
+        if (errorBaseDatos) throw errorBaseDatos
+        setMensaje('Obra añadida al archivo 🎵')
+      }
+
+      // Limpiamos todo
       setTitulo('')
       setAutor('')
       setDuracion('')
       setArchivo(null)
-      e.target.reset()
+      setIdEditando(null)
+      if (e.target) e.target.reset()
       
       setTimeout(() => {
         setVista('galeria')
@@ -83,13 +107,53 @@ function App() {
     }
   }
 
+  const eliminarVinilo = async (e, id) => {
+    e.stopPropagation() // Evita que se abra el detalle al pulsar borrar
+    setMenuAbierto(null)
+    
+    const confirmar = window.confirm("¿Seguro que quieres borrar este disco del archivo?")
+    if (confirmar) {
+      const { error } = await supabase
+        .from('vinilos')
+        .delete()
+        .eq('id', id)
+        
+      if (!error) {
+        obtenerVinilos() // Recargamos la lista
+      } else {
+        alert("Error al borrar el vinilo")
+      }
+    }
+  }
+
+  const iniciarEdicion = (e, vinilo) => {
+    e.stopPropagation() // Evita que se abra el detalle al pulsar editar
+    setMenuAbierto(null)
+    
+    // Rellenamos el formulario con los datos actuales
+    setTitulo(vinilo.titulo)
+    setAutor(vinilo.autor)
+    setDuracion(vinilo.duracion || '')
+    setIdEditando(vinilo.id)
+    setArchivo(null)
+    
+    setVista('añadir') // Reutilizamos la vista del formulario
+  }
+
+  const toggleMenu = (e, id) => {
+    e.stopPropagation()
+    // Si el menú ya estaba abierto lo cierra, si no, lo abre
+    setMenuAbierto(menuAbierto === id ? null : id)
+  }
+
+  // Si hacemos click fuera de las tarjetas, cerramos el menú
+  const cerrarMenuGlobal = () => {
+    if (menuAbierto) setMenuAbierto(null)
+  }
+
   const registrarEscucha = async () => {
     const ahora = new Date().toISOString()
-    
-    // Recuperamos el historial actual (si no hay, creamos un array vacío)
     const historialActual = viniloSeleccionado.historial_escuchas || []
-    
-    // Añadimos la nueva fecha al principio de la lista
     const nuevoHistorial = [ahora, ...historialActual]
     
     const { error } = await supabase
@@ -133,7 +197,7 @@ function App() {
   }
 
   return (
-    <div style={estilos.fondoGlobal}>
+    <div style={estilos.fondoGlobal} onClick={cerrarMenuGlobal}>
       <div style={estilos.contenedor}>
         
         {/* CABECERA ESTILO BIBLIOTECA */}
@@ -147,7 +211,16 @@ function App() {
             <button style={{...estilos.botonNav, borderBottom: vista === 'galeria' ? '3px solid #8B7355' : '3px solid transparent', color: vista === 'galeria' ? '#2C2A29' : '#888'}} onClick={() => setVista('galeria')}>
               Colección
             </button>
-            <button style={{...estilos.botonNav, borderBottom: vista === 'añadir' ? '3px solid #8B7355' : '3px solid transparent', color: vista === 'añadir' ? '#2C2A29' : '#888'}} onClick={() => setVista('añadir')}>
+            <button style={{...estilos.botonNav, borderBottom: vista === 'añadir' ? '3px solid #8B7355' : '3px solid transparent', color: vista === 'añadir' ? '#2C2A29' : '#888'}} 
+              onClick={() => {
+                // Al darle al botón de añadir, limpiamos cualquier estado de edición previo
+                setIdEditando(null)
+                setTitulo('')
+                setAutor('')
+                setDuracion('')
+                setArchivo(null)
+                setVista('añadir')
+              }}>
               Añadir Obra
             </button>
           </div>
@@ -162,6 +235,24 @@ function App() {
               <div style={estilos.cuadricula}>
                 {vinilos.map((vinilo) => (
                   <div key={vinilo.id} style={estilos.tarjeta} onClick={() => abrirDetalle(vinilo)}>
+                    
+                    {/* BOTÓN DE 3 PUNTOS (KEBAB MENU) */}
+                    <button style={estilos.botonOpciones} onClick={(e) => toggleMenu(e, vinilo.id)}>
+                      ⋮
+                    </button>
+                    
+                    {/* MENÚ DESPLEGABLE DE OPCIONES */}
+                    {menuAbierto === vinilo.id && (
+                      <div style={estilos.menuDesplegable}>
+                        <div style={estilos.opcionMenu} onClick={(e) => iniciarEdicion(e, vinilo)}>
+                          ✏️ Editar
+                        </div>
+                        <div style={{...estilos.opcionMenu, color: '#D32F2F', borderTop: '1px solid #EAE6DF'}} onClick={(e) => eliminarVinilo(e, vinilo.id)}>
+                          🗑️ Borrar
+                        </div>
+                      </div>
+                    )}
+
                     {vinilo.imagen_url ? (
                       <img src={vinilo.imagen_url} alt={vinilo.titulo} style={estilos.portadita} />
                     ) : (
@@ -171,7 +262,6 @@ function App() {
                       <h3 style={estilos.tituloTarjeta}>{vinilo.titulo}</h3>
                       <p style={estilos.autorTarjeta}>{vinilo.autor}</p>
                       
-                      {/* Mostramos la última escucha por fuera */}
                       <div style={estilos.etiquetaEscucha}>
                         <span>Última escucha:</span>
                         <strong>{vinilo.ultima_escucha ? formatearFecha(vinilo.ultima_escucha) : 'Nunca'}</strong>
@@ -184,9 +274,13 @@ function App() {
           </div>
         )}
 
-        {/* VISTA 2: FORMULARIO */}
+        {/* VISTA 2: FORMULARIO (SIRVE PARA AÑADIR Y EDITAR) */}
         {vista === 'añadir' && (
           <form onSubmit={guardarVinilo} style={estilos.formulario}>
+            <h2 style={estilos.tituloFormulario}>
+              {idEditando ? 'Editar información del disco' : 'Añadir nueva obra al archivo'}
+            </h2>
+            
             <div style={estilos.grupo}>
               <label style={estilos.label}>Título del álbum</label>
               <input type="text" value={titulo} onChange={(e) => setTitulo(e.target.value)} required style={estilos.input} />
@@ -200,17 +294,19 @@ function App() {
               <input type="text" value={duracion} onChange={(e) => setDuracion(e.target.value)} placeholder="Ej: 45 min" style={estilos.input} />
             </div>
             <div style={estilos.grupo}>
-              <label style={estilos.label}>Fotografía de la portada</label>
+              <label style={estilos.label}>
+                {idEditando ? 'Cambiar fotografía (opcional)' : 'Fotografía de la portada'}
+              </label>
               <input type="file" accept="image/*" onChange={(e) => setArchivo(e.target.files[0])} style={estilos.inputArchivo} />
             </div>
             <button type="submit" disabled={cargando} style={estilos.botonAccion}>
-              {cargando ? 'Catalogando...' : 'Catalogar Vinilo'}
+              {cargando ? 'Guardando...' : (idEditando ? 'Actualizar Vinilo' : 'Catalogar Vinilo')}
             </button>
             {mensaje && <p style={estilos.mensajeConfirmacion}>{mensaje}</p>}
           </form>
         )}
 
-        {/* VISTA 3: FICHA DEL VINILO (DETALLE Y REPRODUCTOR) */}
+        {/* VISTA 3: FICHA DEL VINILO */}
         {vista === 'detalle' && viniloSeleccionado && (
           <div style={estilos.fichaDetalle}>
             <button style={estilos.botonVolver} onClick={() => setVista('galeria')}>
@@ -236,7 +332,6 @@ function App() {
               Añadir al reproductor hoy
             </button>
 
-            {/* HISTORIAL COMPLETO DE ESCUCHAS */}
             <div style={estilos.cajaHistorial}>
               <h4 style={estilos.tituloHistorial}>Registro de audiciones</h4>
               
@@ -261,7 +356,7 @@ function App() {
   )
 }
 
-// ESTILOS: ESTILO BIBLIOTECA CLÁSICA / MELÓMANO
+// ESTILOS ACTUALIZADOS CON EL MENÚ
 const estilos = {
   fondoGlobal: { backgroundColor: '#F4F1EA', minHeight: '100vh', width: '100%', margin: 0, padding: 0 },
   contenedor: { fontFamily: '"Georgia", "Times New Roman", serif', maxWidth: '500px', margin: '0 auto', padding: '20px', color: '#2C2A29', paddingBottom: '60px' },
@@ -273,18 +368,24 @@ const estilos = {
   navegacion: { display: 'flex', gap: '20px', marginBottom: '30px', justifyContent: 'center' },
   botonNav: { background: 'none', border: 'none', fontSize: '18px', fontFamily: 'inherit', padding: '10px 15px', cursor: 'pointer', transition: 'all 0.2s' },
   
-  // Galería
+  // Galería y Menú de Opciones
   cuadricula: { display: 'grid', gridTemplateColumns: '1fr', gap: '25px' }, 
-  tarjeta: { backgroundColor: '#FFFFFF', borderRadius: '4px', display: 'flex', padding: '15px', boxShadow: '0 4px 6px rgba(0,0,0,0.04)', border: '1px solid #EAE6DF', cursor: 'pointer' },
+  tarjeta: { backgroundColor: '#FFFFFF', borderRadius: '4px', display: 'flex', padding: '15px', boxShadow: '0 4px 6px rgba(0,0,0,0.04)', border: '1px solid #EAE6DF', cursor: 'pointer', position: 'relative' }, // position: relative es clave aquí
+  
+  botonOpciones: { position: 'absolute', top: '10px', right: '10px', background: 'none', border: 'none', fontSize: '24px', color: '#888', cursor: 'pointer', padding: '0 10px', fontWeight: 'bold' },
+  menuDesplegable: { position: 'absolute', top: '40px', right: '15px', backgroundColor: '#FFF', border: '1px solid #EAE6DF', borderRadius: '4px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', zIndex: 10, minWidth: '120px' },
+  opcionMenu: { padding: '12px 15px', fontSize: '15px', fontFamily: 'inherit', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' },
+  
   portadita: { width: '90px', height: '90px', objectFit: 'cover', borderRadius: '2px', border: '1px solid #EAE6DF', flexShrink: 0 },
   portadaVacia: { width: '90px', height: '90px', backgroundColor: '#F4F1EA', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid #EAE6DF' },
-  infoTarjeta: { marginLeft: '15px', display: 'flex', flexDirection: 'column', justifyContent: 'center', flex: 1, minWidth: 0 },
+  infoTarjeta: { marginLeft: '15px', display: 'flex', flexDirection: 'column', justifyContent: 'center', flex: 1, minWidth: 0, paddingRight: '20px' },
   tituloTarjeta: { fontSize: '18px', margin: '0 0 5px 0', color: '#1A1818', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' },
   autorTarjeta: { fontSize: '15px', color: '#666', margin: '0 0 12px 0', fontStyle: 'italic' },
   etiquetaEscucha: { fontSize: '12px', color: '#8B7355', borderTop: '1px solid #F0ECE3', paddingTop: '8px', display: 'flex', flexDirection: 'column' },
   
   // Formulario
   formulario: { backgroundColor: '#FFFFFF', padding: '25px', borderRadius: '4px', border: '1px solid #EAE6DF', boxShadow: '0 4px 6px rgba(0,0,0,0.04)' },
+  tituloFormulario: { fontSize: '20px', color: '#1A1818', borderBottom: '1px solid #EAE6DF', paddingBottom: '15px', marginBottom: '20px', fontStyle: 'italic', textAlign: 'center' },
   grupo: { display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '20px' },
   label: { fontSize: '14px', color: '#4A4846', textTransform: 'uppercase', letterSpacing: '1px' },
   input: { padding: '12px', borderRadius: '2px', border: '1px solid #D6D0C4', fontSize: '16px', fontFamily: 'inherit', backgroundColor: '#FAFAF8' },
