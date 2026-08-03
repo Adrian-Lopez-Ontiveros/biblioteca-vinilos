@@ -46,7 +46,7 @@ export default function Coleccion({ vinilos }) {
 }
 
 const estilos = {
-  contenedor: { padding: '20px' },import { tema } from '../theme'
+  contenedor: { padding: '20px' }
 
 export default function Coleccion({ vinilos, abrirDetalle }) {
   
