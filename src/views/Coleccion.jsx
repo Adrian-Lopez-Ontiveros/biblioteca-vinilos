@@ -1,68 +1,144 @@
+import { useState } from 'react'
+import { supabase } from '../supabase'
 import { tema } from '../theme'
 
-export default function Coleccion({ vinilos, abrirDetalle }) {
-  
-  const renderEstrellas = (valoracion) => {
-    const max = 5;
-    const puntos = valoracion || 0;
-    return '★'.repeat(puntos) + '☆'.repeat(max - puntos);
+export default function Coleccion({ vinilos, abrirDetalle, refrescarVinilos, irAEditar }) {
+  const [menuAbierto, setMenuAbierto] = useState(null)
+  const [busqueda, setBusqueda] = useState('') // Estado para la barra de búsqueda
+
+  const toggleMenu = (e, id) => {
+    e.stopPropagation() 
+    setMenuAbierto(menuAbierto === id ? null : id)
   }
 
-  return (
-    <div style={estilos.contenedor}>
-      <div style={estilos.cabeceraFija}>
-        <h1 style={estilos.titulo}>Mi colección</h1>
-        <div style={estilos.filtros}>
-          <span style={estilos.conteo}>{vinilos.length} vinilos</span>
-          <button style={estilos.botonFiltro}>A-Z ⌄</button>
-        </div>
-      </div>
+  const clickEditar = (e, vinilo) => {
+    e.stopPropagation()
+    setMenuAbierto(null)
+    irAEditar(vinilo)
+  }
 
+  const clickBorrar = async (e, vinilo) => {
+    e.stopPropagation()
+    setMenuAbierto(null)
+    if (window.confirm(`¿Seguro que quieres borrar "${vinilo.titulo}"? Esta acción no se puede deshacer.`)) {
+      await supabase.from('vinilos').delete().eq('id', vinilo.id)
+      refrescarVinilos()
+    }
+  }
+
+  // Filtramos los vinilos basándonos en lo que escriba (por título o por autor)
+  const vinilosFiltrados = vinilos.filter(vinilo => 
+    vinilo.titulo.toLowerCase().includes(busqueda.toLowerCase()) ||
+    (vinilo.autor && vinilo.autor.toLowerCase().includes(busqueda.toLowerCase()))
+  )
+
+  return (
+    <div style={estilos.contenedor} onClick={() => setMenuAbierto(null)}>
+      <h2 style={estilos.tituloPrincipal}>Mi Colección</h2>
+      
+      {/* Barra de búsqueda */}
+      <input 
+        type="text" 
+        placeholder="🔍 Buscar por nombre o autor..." 
+        value={busqueda}
+        onChange={(e) => setBusqueda(e.target.value)}
+        style={estilos.inputBusqueda}
+      />
+      
       <div style={estilos.lista}>
-        {vinilos.map(vinilo => (
-          <div 
-            key={vinilo.id} 
-            style={{...estilos.tarjetaLista, cursor: 'pointer'}} 
-            onClick={() => abrirDetalle(vinilo)}
-          >
-            <img 
-              src={vinilo.imagen_url || 'https://via.placeholder.com/150/1E1E1E/FFFFFF?text=🎵'} 
-              alt={vinilo.titulo} 
-              style={estilos.portada} 
-            />
-            <div style={estilos.info}>
-              <h3 style={estilos.tituloVinilo}>{vinilo.titulo}</h3>
-              <p style={estilos.autor}>{vinilo.autor}</p>
-              <p style={estilos.meta}>
-                {vinilo.año || 'Sin año'} • {vinilo.genero || 'Sin género'}
-              </p>
-              <div style={estilos.estrellas}>
-                {renderEstrellas(vinilo.valoracion)}
+        {vinilosFiltrados.length === 0 ? (
+          <p style={estilos.textoVacio}>
+            {busqueda ? 'No se encontraron vinilos con ese nombre.' : 'Aún no hay vinilos en la colección.'}
+          </p>
+        ) : (
+          vinilosFiltrados.map(vinilo => (
+            <div key={vinilo.id} style={estilos.tarjeta} onClick={() => abrirDetalle(vinilo)}>
+              
+              <img 
+                src={vinilo.imagen_url || 'https://via.placeholder.com/150/1E1E1E/FFFFFF?text=🎵'} 
+                alt={vinilo.titulo} 
+                style={estilos.portada} 
+              />
+              
+              <div style={estilos.info}>
+                <h4 style={estilos.titulo}>{vinilo.titulo}</h4>
+                <p style={estilos.autor}>{vinilo.autor}</p>
               </div>
+
+              <div style={estilos.menuContenedor}>
+                <button style={estilos.btnPuntos} onClick={(e) => toggleMenu(e, vinilo.id)}>
+                  ⋮
+                </button>
+                
+                {menuAbierto === vinilo.id && (
+                  <div style={estilos.dropdown}>
+                    <button style={{...estilos.btnOpcion, color: '#4CAF50'}} onClick={(e) => clickEditar(e, vinilo)}>
+                      Editar
+                    </button>
+                    <div style={estilos.separador}></div>
+                    <button style={{...estilos.btnOpcion, color: '#F44336'}} onClick={(e) => clickBorrar(e, vinilo)}>
+                      Borrar
+                    </button>
+                  </div>
+                )}
+              </div>
+
             </div>
-            <button style={estilos.opciones} onClick={(e) => e.stopPropagation()}>•••</button>
-          </div>
-        ))}
+          ))
+        )}
       </div>
     </div>
   )
 }
 
 const estilos = {
-  contenedor: { padding: '20px' },
-  cabeceraFija: { marginBottom: '25px', paddingTop: '10px' },
-  titulo: { fontSize: '24px', margin: '0 0 20px 0', textAlign: 'center', fontFamily: tema.fuentePrincipal },
-  filtros: { display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
-  conteo: { fontSize: '14px', color: tema.textoSecundario },
-  botonFiltro: { background: 'none', border: 'none', color: tema.textoSecundario, fontSize: '14px', cursor: 'pointer' },
-  
+  contenedor: { padding: '20px', minHeight: '100vh' },
+  tituloPrincipal: { color: tema.acento, fontFamily: tema.fuentePrincipal, fontSize: '24px', marginBottom: '15px' },
+  inputBusqueda: {
+    width: '100%',
+    boxSizing: 'border-box',
+    padding: '12px 16px',
+    borderRadius: '12px',
+    border: `1px solid ${tema.borde}`,
+    backgroundColor: tema.superficieClara,
+    color: tema.textoPrincipal,
+    fontSize: '16px',
+    marginBottom: '25px',
+    outline: 'none'
+  },
   lista: { display: 'flex', flexDirection: 'column', gap: '15px' },
-  tarjetaLista: { display: 'flex', alignItems: 'center', backgroundColor: tema.superficie, padding: '12px', borderRadius: '8px', gap: '15px' },
-  portada: { width: '80px', height: '80px', borderRadius: '4px', objectFit: 'cover', backgroundColor: tema.superficieClara },
-  info: { flex: 1, overflow: 'hidden' },
-  tituloVinilo: { fontSize: '16px', margin: '0 0 4px 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: tema.textoPrincipal },
-  autor: { fontSize: '14px', color: tema.textoSecundario, margin: '0 0 4px 0' },
-  meta: { fontSize: '12px', color: tema.textoSecundario, margin: '0 0 6px 0' },
-  estrellas: { fontSize: '14px', color: tema.acento, letterSpacing: '2px' },
-  opciones: { background: 'none', border: 'none', color: tema.textoSecundario, fontSize: '20px', cursor: 'pointer', padding: '10px' }
+  textoVacio: { color: tema.textoSecundario, fontStyle: 'italic', textAlign: 'center', marginTop: '20px' },
+  tarjeta: { 
+    backgroundColor: tema.superficieClara, 
+    borderRadius: '12px', 
+    padding: '12px', 
+    display: 'flex', 
+    alignItems: 'center', 
+    gap: '15px', 
+    cursor: 'pointer',
+    boxShadow: '0 2px 8px rgba(0,0,0,0.2)'
+  },
+  portada: { width: '60px', height: '60px', borderRadius: '8px', objectFit: 'cover' },
+  info: { flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' },
+  titulo: { margin: '0 0 4px 0', color: tema.textoPrincipal, fontSize: '16px', fontWeight: 'bold', fontFamily: tema.fuentePrincipal },
+  autor: { margin: 0, color: tema.textoSecundario, fontSize: '14px' },
+  menuContenedor: { position: 'relative' },
+  btnPuntos: { 
+    background: 'none', border: 'none', color: tema.textoSecundario, 
+    fontSize: '24px', padding: '5px 10px', cursor: 'pointer', 
+    fontWeight: 'bold', lineHeight: '1'
+  },
+  dropdown: { 
+    position: 'absolute', right: '10px', top: '35px', 
+    backgroundColor: tema.superficie, borderRadius: '8px', 
+    boxShadow: '0 4px 12px rgba(0,0,0,0.5)', zIndex: 10, 
+    display: 'flex', flexDirection: 'column', minWidth: '100px', 
+    border: `1px solid ${tema.borde}`, overflow: 'hidden'
+  },
+  btnOpcion: { 
+    background: 'none', border: 'none', padding: '12px 16px', 
+    fontSize: '15px', cursor: 'pointer', textAlign: 'left', 
+    fontWeight: 'bold', width: '100%'
+  },
+  separador: { height: '1px', backgroundColor: tema.borde, margin: 0 }
 }

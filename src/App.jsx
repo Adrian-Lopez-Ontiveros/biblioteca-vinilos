@@ -39,15 +39,21 @@ function App() {
         )}
         
         {vistaActual === 'coleccion' && (
-          <Coleccion vinilos={vinilos} abrirDetalle={abrirDetalle} />
+          <Coleccion 
+            vinilos={vinilos} 
+            abrirDetalle={abrirDetalle} 
+            refrescarVinilos={obtenerVinilos}
+            irAEditar={(vinilo) => {
+              setViniloSeleccionado(vinilo)
+              setVistaActual('editar')
+            }}
+          />
         )}
 
-        {/* MODO AÑADIR NUEVO */}
         {vistaActual === 'añadir' && (
           <Anadir key="crear" setVistaActual={setVistaActual} refrescarVinilos={obtenerVinilos} />
         )}
 
-        {/* MODO EDITAR EXISTENTE */}
         {vistaActual === 'editar' && viniloSeleccionado && (
           <Anadir key="editar" setVistaActual={setVistaActual} refrescarVinilos={obtenerVinilos} viniloAEditar={viniloSeleccionado} />
         )}
@@ -57,7 +63,6 @@ function App() {
             vinilo={viniloSeleccionado} 
             volver={() => setVistaActual('coleccion')} 
             refrescarVinilos={obtenerVinilos} 
-            irAEditar={() => setVistaActual('editar')} // Le pasamos la función para ir a editar
           />
         )}
       </div>

@@ -1,9 +1,8 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { supabase } from '../supabase'
 import { tema } from '../theme'
 
 export default function Anadir({ setVistaActual, refrescarVinilos, viniloAEditar }) {
-  // Si existe viniloAEditar, rellenamos los campos con sus datos
   const [titulo, setTitulo] = useState(viniloAEditar ? viniloAEditar.titulo : '')
   const [autor, setAutor] = useState(viniloAEditar ? viniloAEditar.autor : '')
   const [año, setAño] = useState(viniloAEditar ? (viniloAEditar.año || '') : '')
@@ -38,12 +37,10 @@ export default function Anadir({ setVistaActual, refrescarVinilos, viniloAEditar
       if (imagenUrl) datosBase.imagen_url = imagenUrl
 
       if (viniloAEditar) {
-        // MODO ACTUALIZAR
         const { error } = await supabase.from('vinilos').update(datosBase).eq('id', viniloAEditar.id)
         if (error) throw error
         setMensaje('¡Disco actualizado! 💿')
       } else {
-        // MODO CREAR NUEVO
         datosBase.historial_escuchas = []
         const { error } = await supabase.from('vinilos').insert([datosBase])
         if (error) throw error
@@ -75,12 +72,14 @@ export default function Anadir({ setVistaActual, refrescarVinilos, viniloAEditar
           <label style={estilos.label}>Artista / Grupo</label>
           <input type="text" value={autor} onChange={(e) => setAutor(e.target.value)} required style={estilos.input} />
         </div>
+        
+        {/* Aquí está el cambio para que ocupen exactamente la mitad cada uno */}
         <div style={estilos.filaDoble}>
-          <div style={estilos.grupo}>
+          <div style={estilos.grupoMitad}>
             <label style={estilos.label}>Año</label>
             <input type="number" value={año} onChange={(e) => setAño(e.target.value)} style={estilos.input} />
           </div>
-          <div style={estilos.grupo}>
+          <div style={estilos.grupoMitad}>
             <label style={estilos.label}>Género</label>
             <input type="text" value={genero} onChange={(e) => setGenero(e.target.value)} style={estilos.input} />
           </div>
@@ -127,10 +126,11 @@ const estilos = {
   tituloPagina: { fontSize: '28px', margin: '10px 0 30px 0', fontFamily: tema.fuentePrincipal, color: tema.textoPrincipal },
   formulario: { display: 'flex', flexDirection: 'column', gap: '20px' },
   grupo: { display: 'flex', flexDirection: 'column', gap: '8px' },
-  filaDoble: { display: 'flex', gap: '15px' },
+  filaDoble: { display: 'flex', gap: '15px', width: '100%' },
+  grupoMitad: { display: 'flex', flexDirection: 'column', gap: '8px', flex: 1 }, // El flex 1 hace que ocupen el 50%
   label: { fontSize: '13px', color: tema.textoSecundario, textTransform: 'uppercase', letterSpacing: '1px' },
-  input: { padding: '14px', borderRadius: '8px', border: `1px solid ${tema.borde}`, backgroundColor: tema.superficie, color: tema.textoPrincipal, fontSize: '16px', outline: 'none' },
-  textarea: { padding: '14px', borderRadius: '8px', border: `1px solid ${tema.borde}`, backgroundColor: tema.superficie, color: tema.textoPrincipal, fontSize: '16px', resize: 'vertical', outline: 'none' },
+  input: { width: '100%', boxSizing: 'border-box', padding: '14px', borderRadius: '8px', border: `1px solid ${tema.borde}`, backgroundColor: tema.superficie, color: tema.textoPrincipal, fontSize: '16px', outline: 'none' },
+  textarea: { width: '100%', boxSizing: 'border-box', padding: '14px', borderRadius: '8px', border: `1px solid ${tema.borde}`, backgroundColor: tema.superficie, color: tema.textoPrincipal, fontSize: '16px', resize: 'vertical', outline: 'none' },
   inputArchivo: { color: tema.textoSecundario, marginTop: '5px' },
   contenedorEstrellas: { display: 'flex', gap: '10px', fontSize: '32px', cursor: 'pointer', userSelect: 'none' },
   estrella: { transition: 'color 0.2s' },

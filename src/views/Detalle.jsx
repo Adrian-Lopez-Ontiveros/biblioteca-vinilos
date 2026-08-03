@@ -2,11 +2,10 @@ import { useState } from 'react'
 import { supabase } from '../supabase'
 import { tema } from '../theme'
 
-export default function Detalle({ vinilo, volver, refrescarVinilos, irAEditar }) {
+export default function Detalle({ vinilo, volver, refrescarVinilos }) {
   const [registrando, setRegistrando] = useState(false)
   const [viniloActual, setViniloActual] = useState(vinilo)
 
-  // 1. REGISTRAR ESCUCHA
   const registrarEscucha = async () => {
     setRegistrando(true)
     const ahora = new Date().toISOString()
@@ -22,26 +21,15 @@ export default function Detalle({ vinilo, volver, refrescarVinilos, irAEditar })
     setRegistrando(false)
   }
 
-  // 2. BORRAR ESCUCHA INDIVIDUAL
   const borrarEscucha = async (fechaABorrar) => {
     if (window.confirm("¿Quieres eliminar este registro de escucha?")) {
       const nuevoHistorial = viniloActual.historial_escuchas.filter(fecha => fecha !== fechaABorrar)
-      
       const { error } = await supabase.from('vinilos').update({ historial_escuchas: nuevoHistorial }).eq('id', viniloActual.id)
       
       if (!error) {
         setViniloActual({ ...viniloActual, historial_escuchas: nuevoHistorial })
         refrescarVinilos()
       }
-    }
-  }
-
-  // 3. BORRAR VINILO COMPLETO
-  const borrarVinilo = async () => {
-    if (window.confirm(`¿Seguro que quieres borrar "${viniloActual.titulo}" de tu colección? Esta acción no se puede deshacer.`)) {
-      await supabase.from('vinilos').delete().eq('id', viniloActual.id)
-      refrescarVinilos()
-      volver() // Nos devuelve a la galería automáticamente
     }
   }
 
@@ -65,10 +53,6 @@ export default function Detalle({ vinilo, volver, refrescarVinilos, irAEditar })
         <button style={estilos.btnVolver} onClick={volver}>{"<"}</button>
         <div style={estilos.contadorEscuchas}>
           {viniloActual.historial_escuchas ? viniloActual.historial_escuchas.length : 0} 🎧
-        </div>
-        <div style={estilos.accionesDerecha}>
-          <button style={estilos.btnAccionMini} onClick={irAEditar}>✏️</button>
-          <button style={estilos.btnAccionMini} onClick={borrarVinilo}>🗑️</button>
         </div>
       </div>
 
@@ -127,10 +111,8 @@ export default function Detalle({ vinilo, volver, refrescarVinilos, irAEditar })
 const estilos = {
   contenedor: { padding: '20px', color: tema.textoPrincipal, paddingBottom: '40px' },
   header: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' },
-  btnVolver: { background: 'none', border: 'none', color: tema.acento, fontSize: '24px', cursor: 'pointer', padding: 0, fontWeight: 'bold', width: '30px', textAlign: 'left' },
+  btnVolver: { background: 'none', border: 'none', color: tema.acento, fontSize: '24px', cursor: 'pointer', padding: 0, fontWeight: 'bold' },
   contadorEscuchas: { fontSize: '20px', color: tema.textoPrincipal, fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '6px' },
-  accionesDerecha: { display: 'flex', gap: '15px', width: '60px', justifyContent: 'flex-end' },
-  btnAccionMini: { background: 'none', border: 'none', fontSize: '18px', cursor: 'pointer', padding: 0, filter: 'grayscale(0.3)' },
   tarjetaHero: { backgroundColor: tema.superficieClara, borderRadius: '16px', padding: '15px', display: 'flex', gap: '15px', marginBottom: '30px', boxShadow: '0 4px 10px rgba(0,0,0,0.3)' },
   portada: { width: '95px', height: '95px', borderRadius: '8px', objectFit: 'cover' },
   infoHero: { display: 'flex', flexDirection: 'column', justifyContent: 'center', flex: 1 },
