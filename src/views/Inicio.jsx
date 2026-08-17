@@ -8,9 +8,15 @@ export default function Inicio({ vinilos, cargando, setVistaActual, abrirDetalle
   return (
     <div className="pagina">
       <header className="cabecera-home">
-        <div className="marca-disco" aria-hidden="true"><span className="disco" /></div>
-        <p className="kicker">Colección personal</p>
-        <h1 className="titulo-app">Los vinilos<br />de Edu</h1>
+        <h1 className="logo-titulo">
+          <img
+            className="logo-principal"
+            src="/logo-vinilos-edu.png"
+            alt="Los vinilos de Edu"
+            width="1024"
+            height="1024"
+          />
+        </h1>
       </header>
 
       <div className="grid-stats">

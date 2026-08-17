@@ -7,7 +7,15 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.svg', 'icon-192x192.png', 'icon-512x512.png'],
+      includeAssets: [
+        'logo-vinilos-edu.png',
+        'favicon-32.png',
+        'favicon-48.png',
+        'apple-touch-icon.png',
+        'icon-192x192.png',
+        'icon-512x512.png',
+        'icon-maskable-512.png',
+      ],
       manifest: {
         name: 'Los vinilos de Edu',
         short_name: 'Vinilos Edu',
@@ -22,17 +30,19 @@ export default defineConfig({
             src: '/icon-192x192.png',
             sizes: '192x192',
             type: 'image/png',
+            purpose: 'any',
           },
           {
             src: '/icon-512x512.png',
             sizes: '512x512',
             type: 'image/png',
+            purpose: 'any',
           },
           {
-            src: '/icon-512x512.png',
+            src: '/icon-maskable-512.png',
             sizes: '512x512',
             type: 'image/png',
-            purpose: 'any maskable',
+            purpose: 'maskable',
           },
         ],
       },
