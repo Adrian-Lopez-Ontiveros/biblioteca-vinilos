@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import Portada from '../components/Portada'
+import { ordenarPorUltimaEscucha, textoUltimaEscucha } from '../lib/vinilos'
 
 export default function Coleccion({ vinilos, abrirDetalle }) {
   const [busqueda, setBusqueda] = useState('')
@@ -7,13 +8,18 @@ export default function Coleccion({ vinilos, abrirDetalle }) {
 
   const vinilosFiltrados = useMemo(() => {
     const q = busqueda.trim().toLowerCase()
-    if (!q) return vinilos
-    return vinilos.filter((vinilo) =>
-      [vinilo.titulo, vinilo.autor, vinilo.genero]
-        .filter(Boolean)
-        .some((campo) => String(campo).toLowerCase().includes(q))
-    )
-  }, [vinilos, busqueda])
+    const filtrados = !q
+      ? vinilos
+      : vinilos.filter((vinilo) =>
+        [vinilo.titulo, vinilo.autor, vinilo.genero]
+          .filter(Boolean)
+          .some((campo) => String(campo).toLowerCase().includes(q))
+      )
+
+    if (agrupacion === 'sinOirMas') return ordenarPorUltimaEscucha(filtrados, 'mas')
+    if (agrupacion === 'sinOirMenos') return ordenarPorUltimaEscucha(filtrados, 'menos')
+    return filtrados
+  }, [vinilos, busqueda, agrupacion])
 
   const renderTarjeta = (vinilo) => (
     <button
@@ -29,6 +35,7 @@ export default function Coleccion({ vinilos, abrirDetalle }) {
           {vinilo.autor}
           {vinilo.año ? ` · ${vinilo.año}` : ''}
         </p>
+        <p className="meta-escucha">{textoUltimaEscucha(vinilo)}</p>
       </div>
     </button>
   )
@@ -83,6 +90,8 @@ export default function Coleccion({ vinilos, abrirDetalle }) {
     { id: 'letra', label: 'A — Z' },
     { id: 'autor', label: 'Artista' },
     { id: 'genero', label: 'Género' },
+    { id: 'sinOirMas', label: 'Más tiempo sin oír' },
+    { id: 'sinOirMenos', label: 'Menos tiempo sin oír' },
   ]
 
   return (

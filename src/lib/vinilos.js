@@ -74,3 +74,68 @@ export async function guardarVinilo({ datos, idEditar }) {
 export function comentariosDe(vinilo) {
   return (vinilo?.canciones || '').trim()
 }
+
+export function timestampUltimaEscucha(vinilo) {
+  if (vinilo?.ultima_escucha) {
+    const t = Date.parse(vinilo.ultima_escucha)
+    if (Number.isFinite(t)) return t
+  }
+
+  const historial = vinilo?.historial_escuchas || []
+  let masReciente = null
+  for (const fecha of historial) {
+    const t = Date.parse(fecha)
+    if (Number.isFinite(t) && (masReciente === null || t > masReciente)) {
+      masReciente = t
+    }
+  }
+  return masReciente
+}
+
+export function fechaIsoUltimaEscucha(viniloOHistorial) {
+  const historial = Array.isArray(viniloOHistorial)
+    ? viniloOHistorial
+    : (viniloOHistorial?.historial_escuchas || [])
+
+  let mejor = null
+  let mejorTs = null
+  for (const fecha of historial) {
+    const t = Date.parse(fecha)
+    if (Number.isFinite(t) && (mejorTs === null || t > mejorTs)) {
+      mejor = fecha
+      mejorTs = t
+    }
+  }
+  return mejor
+}
+
+export function textoUltimaEscucha(vinilo) {
+  const t = timestampUltimaEscucha(vinilo)
+  if (t === null) return 'Todavía no se ha escuchado'
+
+  const dias = Math.floor(Math.max(0, Date.now() - t) / 86400000)
+  if (dias <= 0) return 'Escuchado hoy'
+  if (dias === 1) return 'Escuchado ayer'
+  if (dias < 14) return `Escuchado hace ${dias} días`
+
+  const semanas = Math.round(dias / 7)
+  if (dias < 45) return semanas === 1 ? 'Escuchado hace 1 semana' : `Escuchado hace ${semanas} semanas`
+
+  const meses = Math.round(dias / 30)
+  if (dias < 540) return meses === 1 ? 'Escuchado hace 1 mes' : `Escuchado hace ${meses} meses`
+
+  const años = Math.round(dias / 365)
+  return años === 1 ? 'Escuchado hace 1 año' : `Escuchado hace ${años} años`
+}
+
+export function ordenarPorUltimaEscucha(lista, direccion) {
+  const masTiempo = direccion === 'mas'
+  return [...lista].sort((a, b) => {
+    const ta = timestampUltimaEscucha(a)
+    const tb = timestampUltimaEscucha(b)
+    if (ta === null && tb === null) return 0
+    if (ta === null) return masTiempo ? -1 : 1
+    if (tb === null) return masTiempo ? 1 : -1
+    return masTiempo ? ta - tb : tb - ta
+  })
+}

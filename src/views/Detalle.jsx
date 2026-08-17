@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { supabase } from '../supabase'
-import { comentariosDe, mensajeErrorSupabase } from '../lib/vinilos'
+import { comentariosDe, fechaIsoUltimaEscucha, mensajeErrorSupabase, textoUltimaEscucha } from '../lib/vinilos'
 import Portada from '../components/Portada'
 import ConfirmDialog from '../components/ConfirmDialog'
 
@@ -40,8 +40,10 @@ export default function Detalle({ vinilo, volver, refrescarVinilos, irAEditar, o
 
   const borrarEscucha = async (fechaABorrar) => {
     try {
+      const nuevoHistorial = historial.filter((fecha) => fecha !== fechaABorrar)
       await actualizar({
-        historial_escuchas: historial.filter((fecha) => fecha !== fechaABorrar),
+        historial_escuchas: nuevoHistorial,
+        ultima_escucha: fechaIsoUltimaEscucha(nuevoHistorial),
       })
     } catch (error) {
       setAviso(mensajeErrorSupabase(error))
@@ -93,6 +95,7 @@ export default function Detalle({ vinilo, volver, refrescarVinilos, irAEditar, o
           <p className="estrellas-texto" aria-label={`Valoración ${viniloActual.valoracion || 0} de 5`}>
             {estrellas}
           </p>
+          <p className="meta-escucha" style={{ marginTop: 8 }}>{textoUltimaEscucha(viniloActual)}</p>
         </div>
       </div>
 

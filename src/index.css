@@ -264,6 +264,13 @@ p {
   margin-top: 3px;
 }
 
+.meta-escucha {
+  color: var(--naranja-oscuro);
+  font-size: 14px;
+  font-weight: 700;
+  margin-top: 5px;
+}
+
 .portada {
   width: 76px;
   height: 76px;
