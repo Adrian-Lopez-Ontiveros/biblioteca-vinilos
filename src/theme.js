@@ -1,11 +1,14 @@
 export const tema = {
-  fondo: '#000000',
-  superficie: '#121212',
-  superficieClara: '#1E1E1E',
-  textoPrincipal: '#FFFFFF',
-  textoSecundario: '#A0A0A0',
-  acento: '#E5C07B', // Tono dorado/champán elegante
-  borde: '#2A2A2A',
-  fuentePrincipal: '"Georgia", serif',
-  fuenteSecundaria: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+  fondo: '#E8D5B5',
+  papel: '#FBF3E3',
+  tinta: '#1C120C',
+  tintaSuave: '#5A4030',
+  naranja: '#C24E1D',
+  naranjaOscuro: '#8F3512',
+  madera: '#23170F',
+  borde: '#D4B896',
+  peligro: '#9B2C1C',
+  ok: '#2F6B3A',
+  fuenteTitulo: '"Fraunces", Georgia, "Times New Roman", serif',
+  fuenteCuerpo: '"Nunito Sans", "Segoe UI", sans-serif',
 }

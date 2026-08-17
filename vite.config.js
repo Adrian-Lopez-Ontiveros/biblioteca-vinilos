@@ -7,27 +7,35 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['icon-192x192.png', 'icon-512x512.png'],
+      includeAssets: ['favicon.svg', 'icon-192x192.png', 'icon-512x512.png'],
       manifest: {
-        name: 'Colección de Vinilos',
-        short_name: 'Vinilos',
-        description: 'Gestor de biblioteca de vinilos',
-        theme_color: '#1a1a1a',
-        background_color: '#ffffff',
+        name: 'Los vinilos de Edu',
+        short_name: 'Vinilos Edu',
+        description: 'Colección personal de vinilos',
+        theme_color: '#23170F',
+        background_color: '#E8D5B5',
         display: 'standalone',
+        lang: 'es',
+        start_url: '/',
         icons: [
           {
             src: '/icon-192x192.png',
             sizes: '192x192',
-            type: 'image/png'
+            type: 'image/png',
           },
           {
             src: '/icon-512x512.png',
             sizes: '512x512',
-            type: 'image/png'
-          }
-        ]
-      }
-    })
-  ]
+            type: 'image/png',
+          },
+          {
+            src: '/icon-512x512.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'any maskable',
+          },
+        ],
+      },
+    }),
+  ],
 })

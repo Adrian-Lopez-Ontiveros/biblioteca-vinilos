@@ -1,81 +1,66 @@
-import { tema } from '../theme'
+import Portada from '../components/Portada'
 
-export default function Inicio({ vinilos, setVistaActual, abrirDetalle }) {
-  // Cálculos rápidos para las estadísticas de Edu
-  const artistasUnicos = new Set(vinilos.map(v => v.autor).filter(Boolean)).size
-  const generosUnicos = new Set(vinilos.map(v => v.genero).filter(Boolean)).size
-  const recientes = vinilos.slice(0, 5) // Mostramos solo los 5 más recientes
+export default function Inicio({ vinilos, cargando, setVistaActual, abrirDetalle }) {
+  const artistasUnicos = new Set(vinilos.map((v) => v.autor).filter(Boolean)).size
+  const generosUnicos = new Set(vinilos.map((v) => v.genero).filter(Boolean)).size
+  const recientes = vinilos.slice(0, 6)
 
   return (
-    <div style={estilos.contenedor}>
-      <header style={estilos.cabecera}>
-        <h1 style={estilos.titulo}>Los Vinilos De<br/>Edu</h1>
+    <div className="pagina">
+      <header className="cabecera-home">
+        <div className="marca-disco" aria-hidden="true"><span className="disco" /></div>
+        <p className="kicker">Colección personal</p>
+        <h1 className="titulo-app">Los vinilos<br />de Edu</h1>
       </header>
 
-      {/* Tarjetas de estadísticas */}
-      <div style={estilos.gridStats}>
-        <div style={estilos.tarjetaStat}>
-          <div style={estilos.iconoStat}>📀</div>
-          <div style={estilos.valorStat}>{vinilos.length}</div>
-          <div style={estilos.labelStat}>vinilos</div>
+      <div className="grid-stats">
+        <div className="tarjeta-stat">
+          <strong>{cargando ? '—' : vinilos.length}</strong>
+          <span>vinilos</span>
         </div>
-        <div style={estilos.tarjetaStat}>
-          <div style={estilos.iconoStat}>🎵</div>
-          <div style={estilos.valorStat}>{artistasUnicos}</div>
-          <div style={estilos.labelStat}>artistas</div>
+        <div className="tarjeta-stat">
+          <strong>{cargando ? '—' : artistasUnicos}</strong>
+          <span>artistas</span>
         </div>
-        <div style={estilos.tarjetaStat}>
-          <div style={estilos.iconoStat}>🎛️</div>
-          <div style={estilos.valorStat}>{generosUnicos}</div>
-          <div style={estilos.labelStat}>géneros</div>
+        <div className="tarjeta-stat">
+          <strong>{cargando ? '—' : generosUnicos}</strong>
+          <span>géneros</span>
         </div>
       </div>
 
-      {/* Colección Reciente (Carrusel Horizontal) */}
-      <section style={estilos.seccion}>
-        <div style={estilos.cabeceraSeccion}>
-          <h2 style={estilos.tituloSeccion}>Colección reciente</h2>
-          <button style={estilos.botonVerTodo} onClick={() => setVistaActual('coleccion')}>Ver todo</button>
+      <section>
+        <div className="seccion-cabecera">
+          <h2 className="titulo-seccion">Últimos añadidos</h2>
+          <button type="button" className="enlace" onClick={() => setVistaActual('coleccion')}>
+            Ver todos
+          </button>
         </div>
-        
-        <div style={estilos.carrusel}>
-          {recientes.map(vinilo => (
-            <div key={vinilo.id} style={estilos.tarjetaReciente} onClick={() => abrirDetalle(vinilo)}>
-              <img 
-                src={vinilo.imagen_url || 'https://via.placeholder.com/150/1E1E1E/FFFFFF?text=🎵'} 
-                alt={vinilo.titulo} 
-                style={estilos.portadaReciente} 
-              />
-              <h3 style={estilos.tituloVinilo}>{vinilo.titulo}</h3>
-              <p style={estilos.autorVinilo}>{vinilo.autor}</p>
-            </div>
-          ))}
-        </div>
+
+        {recientes.length === 0 ? (
+          <div className="vacio">
+            {cargando ? 'Cargando la estantería…' : 'Todavía no hay vinilos. Añade el primero cuando quieras.'}
+          </div>
+        ) : (
+          <div className="carrusel">
+            {recientes.map((vinilo) => (
+              <button
+                key={vinilo.id}
+                type="button"
+                className="tarjeta-reciente"
+                onClick={() => abrirDetalle(vinilo)}
+              >
+                <Portada src={vinilo.imagen_url} alt={vinilo.titulo} />
+                <h3 className="linea-corta">{vinilo.titulo}</h3>
+                <p className="linea-corta">{vinilo.autor}</p>
+              </button>
+            ))}
+          </div>
+        )}
       </section>
+
+      <button type="button" className="boton boton-principal" onClick={() => setVistaActual('añadir')}>
+        Añadir un vinilo
+      </button>
     </div>
   )
-}
-
-const estilos = {
-  contenedor: { padding: '20px' },
-  cabecera: { marginBottom: '30px', marginTop: '10px' },
-  titulo: { fontSize: '36px', margin: '0 0 10px 0', fontFamily: tema.fuentePrincipal, lineHeight: '1.1' },
-  subtitulo: { fontSize: '14px', color: tema.textoSecundario, margin: 0 },
-  
-  gridStats: { display: 'flex', gap: '10px', marginBottom: '40px', overflowX: 'auto', paddingBottom: '10px', scrollbarWidth: 'none' },
-  tarjetaStat: { flex: '1', minWidth: '95px', backgroundColor: tema.superficieClara, padding: '15px 10px', borderRadius: '12px', textAlign: 'center' },
-  iconoStat: { fontSize: '24px', marginBottom: '8px' },
-  valorStat: { fontSize: '22px', fontWeight: 'bold', color: tema.textoPrincipal },
-  labelStat: { fontSize: '12px', color: tema.textoSecundario },
-
-  seccion: { marginBottom: '30px' },
-  cabeceraSeccion: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' },
-  tituloSeccion: { fontSize: '18px', fontWeight: 'bold', margin: 0 },
-  botonVerTodo: { background: 'none', border: 'none', color: tema.textoSecundario, fontSize: '14px', cursor: 'pointer' },
-
-  carrusel: { display: 'flex', gap: '15px', overflowX: 'auto', paddingBottom: '15px', scrollSnapType: 'x mandatory', scrollbarWidth: 'none' },
-  tarjetaReciente: { minWidth: '140px', width: '140px', scrollSnapAlign: 'start', cursor: 'pointer' },
-  portadaReciente: { width: '140px', height: '140px', objectFit: 'cover', borderRadius: '8px', marginBottom: '10px', backgroundColor: tema.superficieClara },
-  tituloVinilo: { fontSize: '14px', margin: '0 0 4px 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' },
-  autorVinilo: { fontSize: '12px', color: tema.textoSecundario, margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }
 }

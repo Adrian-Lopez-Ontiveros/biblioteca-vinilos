@@ -1,130 +1,156 @@
 import { useState } from 'react'
 import { supabase } from '../supabase'
-import { tema } from '../theme'
+import { comentariosDe, mensajeErrorSupabase } from '../lib/vinilos'
+import Portada from '../components/Portada'
+import ConfirmDialog from '../components/ConfirmDialog'
 
-export default function Detalle({ vinilo, volver, refrescarVinilos }) {
-  const [registrando, setRegistrando] = useState(false)
+export default function Detalle({ vinilo, volver, refrescarVinilos, irAEditar, onActualizado }) {
   const [viniloActual, setViniloActual] = useState(vinilo)
+  const [registrando, setRegistrando] = useState(false)
+  const [confirmarBorrado, setConfirmarBorrado] = useState(false)
+  const [aviso, setAviso] = useState('')
+
+  const comentarios = comentariosDe(viniloActual)
+  const historial = viniloActual.historial_escuchas || []
+
+  const actualizar = async (cambios) => {
+    const { error } = await supabase.from('vinilos').update(cambios).eq('id', viniloActual.id)
+    if (error) throw error
+    const siguiente = { ...viniloActual, ...cambios }
+    setViniloActual(siguiente)
+    onActualizado?.(siguiente)
+    await refrescarVinilos()
+  }
 
   const registrarEscucha = async () => {
     setRegistrando(true)
-    const ahora = new Date().toISOString()
-    const historialActual = viniloActual.historial_escuchas || []
-    const nuevoHistorial = [ahora, ...historialActual]
-
-    const { error } = await supabase.from('vinilos').update({ ultima_escucha: ahora, historial_escuchas: nuevoHistorial }).eq('id', viniloActual.id)
-
-    if (!error) {
-      setViniloActual({ ...viniloActual, ultima_escucha: ahora, historial_escuchas: nuevoHistorial })
-      refrescarVinilos() 
+    setAviso('')
+    try {
+      const ahora = new Date().toISOString()
+      await actualizar({
+        ultima_escucha: ahora,
+        historial_escuchas: [ahora, ...historial],
+      })
+    } catch (error) {
+      setAviso(mensajeErrorSupabase(error))
+    } finally {
+      setRegistrando(false)
     }
-    setRegistrando(false)
   }
 
   const borrarEscucha = async (fechaABorrar) => {
-    if (window.confirm("¿Quieres eliminar este registro de escucha?")) {
-      const nuevoHistorial = viniloActual.historial_escuchas.filter(fecha => fecha !== fechaABorrar)
-      const { error } = await supabase.from('vinilos').update({ historial_escuchas: nuevoHistorial }).eq('id', viniloActual.id)
-      
-      if (!error) {
-        setViniloActual({ ...viniloActual, historial_escuchas: nuevoHistorial })
-        refrescarVinilos()
-      }
+    try {
+      await actualizar({
+        historial_escuchas: historial.filter((fecha) => fecha !== fechaABorrar),
+      })
+    } catch (error) {
+      setAviso(mensajeErrorSupabase(error))
     }
   }
 
-  const renderEstrellas = (valoracion) => {
-    const puntos = valoracion || 0
-    return '★'.repeat(puntos) + '☆'.repeat(5 - puntos)
+  const borrarVinilo = async () => {
+    const { error } = await supabase.from('vinilos').delete().eq('id', viniloActual.id)
+    if (error) {
+      setAviso(mensajeErrorSupabase(error))
+      setConfirmarBorrado(false)
+      return
+    }
+    await refrescarVinilos()
+    volver()
   }
-
-  const cancionesArray = viniloActual.canciones ? viniloActual.canciones.split('\n').filter(c => c.trim() !== '') : []
 
   const formatearFecha = (isoString) => {
     const fecha = new Date(isoString)
-    return fecha.toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+    return fecha.toLocaleDateString('es-ES', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    })
   }
 
+  const estrellas = '★'.repeat(viniloActual.valoracion || 0) + '☆'.repeat(5 - (viniloActual.valoracion || 0))
+
   return (
-    <div style={estilos.contenedor}>
-      
-      {/* CABECERA */}
-      <div style={estilos.header}>
-        <button style={estilos.btnVolver} onClick={volver}>{"<"}</button>
-        <div style={estilos.contadorEscuchas}>
-          {viniloActual.historial_escuchas ? viniloActual.historial_escuchas.length : 0} 🎧
+    <div className="pagina">
+      <div className="detalle-top">
+        <button type="button" className="boton boton-secundario boton-icono" onClick={volver} aria-label="Volver">
+          ←
+        </button>
+        <p className="subtitulo">{historial.length} {historial.length === 1 ? 'escucha' : 'escuchas'}</p>
+      </div>
+
+      <div className="detalle-hero">
+        <Portada src={viniloActual.imagen_url} alt={viniloActual.titulo} className="portada-hero" />
+        <div>
+          <h1 className="titulo-detalle">{viniloActual.titulo}</h1>
+          <p className="subtitulo" style={{ marginTop: 6 }}>
+            {viniloActual.autor}
+            {viniloActual.año ? ` · ${viniloActual.año}` : ''}
+            {viniloActual.genero ? ` · ${viniloActual.genero}` : ''}
+          </p>
+          <p className="estrellas-texto" aria-label={`Valoración ${viniloActual.valoracion || 0} de 5`}>
+            {estrellas}
+          </p>
         </div>
       </div>
 
-      <div style={estilos.tarjetaHero}>
-        <img src={viniloActual.imagen_url || 'https://via.placeholder.com/150/1E1E1E/FFFFFF?text=🎵'} alt={viniloActual.titulo} style={estilos.portada} />
-        <div style={estilos.infoHero}>
-          <h3 style={estilos.tituloHero}>{viniloActual.titulo}</h3>
-          <p style={estilos.metaHero}>{viniloActual.año || 'Sin año'} • {viniloActual.genero || 'Sin género'}</p>
-          <p style={estilos.autorHero}>Autor: {viniloActual.autor || 'Desconocido'}</p>
-          <div style={estilos.estrellas}>{renderEstrellas(viniloActual.valoracion)}</div>
+      <section>
+        <h2 className="titulo-seccion">Comentarios sobre el vinilo</h2>
+        {comentarios ? (
+          <div className="nota">{comentarios}</div>
+        ) : (
+          <div className="vacio">Todavía no hay notas en este disco.</div>
+        )}
+      </section>
+
+      <section>
+        <h2 className="titulo-seccion">Historial de escuchas</h2>
+        <div className="caja">
+          {historial.length > 0 ? historial.map((fechaIso) => (
+            <div key={fechaIso} className="item-lista">
+              <span>{formatearFecha(fechaIso)}</span>
+              <button
+                type="button"
+                className="enlace"
+                onClick={() => borrarEscucha(fechaIso)}
+                aria-label="Eliminar esta escucha"
+              >
+                Quitar
+              </button>
+            </div>
+          )) : (
+            <div className="item-lista">
+              <span className="meta-suave">Aún no hay registros. Dale al botón cuando lo pongas.</span>
+            </div>
+          )}
         </div>
+      </section>
+
+      <div className="acciones-detalle">
+        <button type="button" className="boton boton-principal" onClick={registrarEscucha} disabled={registrando}>
+          {registrando ? 'Registrando…' : 'Registrar escucha'}
+        </button>
+        <button type="button" className="boton boton-madera" onClick={() => irAEditar(viniloActual)}>
+          Editar ficha
+        </button>
+        <button type="button" className="boton boton-secundario" onClick={() => setConfirmarBorrado(true)}>
+          Borrar vinilo
+        </button>
+        {aviso && <p className="aviso aviso-error">{aviso}</p>}
       </div>
 
-      <h3 style={estilos.tituloSeccion}>Canciones</h3>
-      <div style={estilos.cajaSeccion}>
-        {cancionesArray.length > 0 ? (
-          cancionesArray.map((cancion, index) => {
-            const nombreLimpio = cancion.replace(/^\d+[\.\-]\s*/, '')
-            const esUltimo = index === cancionesArray.length - 1
-            return (
-              <div key={index} style={{ ...estilos.itemLista, borderBottom: esUltimo ? 'none' : '1px solid rgba(255,255,255,0.05)' }}>
-                <span style={estilos.textoLista}>{index + 1}. {nombreLimpio}</span>
-              </div>
-            )
-          })
-        ) : (
-          <p style={estilos.textoVacio}>No hay canciones añadidas.</p>
-        )}
-      </div>
-
-      <h3 style={estilos.tituloSeccion}>Historial de Escuchas</h3>
-      <div style={estilos.cajaSeccion}>
-        {viniloActual.historial_escuchas && viniloActual.historial_escuchas.length > 0 ? (
-          viniloActual.historial_escuchas.map((fechaIso, index) => {
-            const esUltimo = index === viniloActual.historial_escuchas.length - 1
-            return (
-              <div key={index} style={{ ...estilos.itemLista, borderBottom: esUltimo ? 'none' : '1px solid rgba(255,255,255,0.05)' }}>
-                <span style={estilos.textoLista}>{formatearFecha(fechaIso)}</span>
-                <button style={estilos.btnBorrarEscucha} onClick={() => borrarEscucha(fechaIso)}>✕</button>
-              </div>
-            )
-          })
-        ) : (
-          <p style={estilos.textoVacio}>Aún no hay registros. ¡Dale al botón para estrenarlo!</p>
-        )}
-      </div>
-
-      <button style={estilos.btnEscuchar} onClick={registrarEscucha} disabled={registrando}>
-        {registrando ? 'Registrando...' : '🎧 Registrar Escucha'}
-      </button>
-
+      <ConfirmDialog
+        abierto={confirmarBorrado}
+        titulo="¿Borrar este vinilo?"
+        texto={`Se eliminará “${viniloActual.titulo}” de la colección. Esta acción no se puede deshacer.`}
+        confirmarLabel="Borrar"
+        cancelarLabel="Cancelar"
+        peligro
+        onCancelar={() => setConfirmarBorrado(false)}
+        onConfirmar={borrarVinilo}
+      />
     </div>
   )
-}
-
-const estilos = {
-  contenedor: { padding: '20px', color: tema.textoPrincipal, paddingBottom: '40px' },
-  header: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' },
-  btnVolver: { background: 'none', border: 'none', color: tema.acento, fontSize: '24px', cursor: 'pointer', padding: 0, fontWeight: 'bold' },
-  contadorEscuchas: { fontSize: '20px', color: tema.textoPrincipal, fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '6px' },
-  tarjetaHero: { backgroundColor: tema.superficieClara, borderRadius: '16px', padding: '15px', display: 'flex', gap: '15px', marginBottom: '30px', boxShadow: '0 4px 10px rgba(0,0,0,0.3)' },
-  portada: { width: '95px', height: '95px', borderRadius: '8px', objectFit: 'cover' },
-  infoHero: { display: 'flex', flexDirection: 'column', justifyContent: 'center', flex: 1 },
-  tituloHero: { fontSize: '20px', margin: '0 0 6px 0', color: tema.acento, fontFamily: tema.fuentePrincipal },
-  metaHero: { fontSize: '14px', color: tema.textoSecundario, margin: '0 0 4px 0' },
-  autorHero: { fontSize: '14px', color: tema.textoSecundario, margin: '0 0 8px 0' },
-  estrellas: { color: tema.acento, letterSpacing: '2px', fontSize: '15px' },
-  tituloSeccion: { fontSize: '18px', color: tema.textoPrincipal, marginBottom: '12px' },
-  cajaSeccion: { backgroundColor: tema.superficieClara, borderRadius: '16px', padding: '10px 15px', marginBottom: '30px' },
-  itemLista: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 0' },
-  textoLista: { fontSize: '15px', color: tema.textoPrincipal },
-  btnBorrarEscucha: { background: 'none', border: 'none', color: '#666', fontSize: '16px', cursor: 'pointer', padding: '0 5px' },
-  textoVacio: { color: tema.textoSecundario, fontStyle: 'italic', fontSize: '14px', margin: '5px 0' },
-  btnEscuchar: { width: '100%', padding: '16px', backgroundColor: tema.acento, color: '#000', border: 'none', borderRadius: '30px', fontSize: '16px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center' }
 }

@@ -1,71 +1,53 @@
-import { tema } from '../theme'
-
 export default function BottomNav({ vistaActual, setVistaActual }) {
+  const items = [
+    {
+      id: 'inicio',
+      label: 'Inicio',
+      activo: vistaActual === 'inicio',
+      icono: (
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M4 11.5 12 4l8 7.5" />
+          <path d="M6.5 10.8V20h11V10.8" />
+        </svg>
+      ),
+    },
+    {
+      id: 'coleccion',
+      label: 'Colección',
+      activo: vistaActual === 'coleccion' || vistaActual === 'detalle',
+      icono: (
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="12" cy="12" r="7.5" />
+          <circle cx="12" cy="12" r="2.2" />
+        </svg>
+      ),
+    },
+    {
+      id: 'añadir',
+      label: 'Añadir',
+      activo: vistaActual === 'añadir' || vistaActual === 'editar',
+      icono: (
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="12" cy="12" r="8" />
+          <path d="M12 8.2v7.6M8.2 12h7.6" />
+        </svg>
+      ),
+    },
+  ]
+
   return (
-    <div style={estilos.nav}>
-      <button 
-        style={vistaActual === 'inicio' ? estilos.btnActivo : estilos.btn} 
-        onClick={() => setVistaActual('inicio')}
-      >
-        🏠<span style={estilos.texto}>Inicio</span>
-      </button>
-      
-      <button 
-        style={vistaActual === 'coleccion' || vistaActual === 'detalle' ? estilos.btnActivo : estilos.btn} 
-        onClick={() => setVistaActual('coleccion')}
-      >
-        💿<span style={estilos.texto}>Colección</span>
-      </button>
-
-      <button 
-        style={vistaActual === 'añadir' || vistaActual === 'editar' ? estilos.btnActivo : estilos.btn} 
-        onClick={() => setVistaActual('añadir')}
-      >
-        ➕<span style={estilos.texto}>Añadir</span>
-      </button>
-    </div>
+    <nav className="nav-inferior" aria-label="Navegación principal">
+      {items.map((item) => (
+        <button
+          key={item.id}
+          type="button"
+          className={`nav-btn ${item.activo ? 'nav-btn-activo' : ''}`}
+          onClick={() => setVistaActual(item.id)}
+        >
+          {item.icono}
+          <span>{item.label}</span>
+        </button>
+      ))}
+    </nav>
   )
-}
-
-const estilos = {
-  nav: {
-    position: 'fixed',
-    bottom: 0,
-    left: 0,
-    width: '100%',
-    backgroundColor: tema.superficie,
-    display: 'flex',
-    justifyContent: 'space-around',
-    padding: '12px 0 20px 0',
-    borderTop: `1px solid ${tema.borde}`,
-    zIndex: 1000
-  },
-  btn: {
-    background: 'none',
-    border: 'none',
-    color: tema.textoSecundario,
-    fontSize: '22px',
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    gap: '4px',
-    cursor: 'pointer',
-    filter: 'grayscale(1)'
-  },
-  btnActivo: {
-    background: 'none',
-    border: 'none',
-    color: tema.acento,
-    fontSize: '22px',
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    gap: '4px',
-    cursor: 'pointer'
-  },
-  texto: {
-    fontSize: '12px',
-    fontWeight: 'bold',
-    fontFamily: tema.fuenteSecundaria
-  }
 }

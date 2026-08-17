@@ -1,16 +1,17 @@
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { supabase } from './supabase'
-import { tema } from './theme'
 import BottomNav from './components/BottomNav'
 import Inicio from './views/Inicio'
 import Coleccion from './views/Coleccion'
 import Anadir from './views/Anadir'
 import Detalle from './views/Detalle'
 
-function App() {
-  const [vistaActual, setVistaActual] = useState('inicio') 
+export default function App() {
+  const [vistaActual, setVistaActual] = useState('inicio')
   const [vinilos, setVinilos] = useState([])
   const [viniloSeleccionado, setViniloSeleccionado] = useState(null)
+  const [cargando, setCargando] = useState(true)
+  const [errorCarga, setErrorCarga] = useState('')
 
   useEffect(() => {
     obtenerVinilos()
@@ -22,7 +23,14 @@ function App() {
       .select('*')
       .order('created_at', { ascending: false })
 
-    if (!error) setVinilos(data)
+    if (error) {
+      setErrorCarga('No se ha podido cargar la colección.')
+      setVinilos([])
+    } else {
+      setErrorCarga('')
+      setVinilos(data || [])
+    }
+    setCargando(false)
   }
 
   const abrirDetalle = (vinilo) => {
@@ -30,52 +38,63 @@ function App() {
     setVistaActual('detalle')
   }
 
+  const irAEditar = (vinilo) => {
+    setViniloSeleccionado(vinilo)
+    setVistaActual('editar')
+  }
+
+  const cambiarVista = (vista) => {
+    if (vista === 'añadir') setViniloSeleccionado(null)
+    setVistaActual(vista)
+  }
+
   return (
-    <div style={estilos.app}>
-      
-      <div style={estilos.contenido}>
+    <div className="app">
+      <div className="app-contenido">
+        {errorCarga && <p className="aviso aviso-error">{errorCarga}</p>}
+
         {vistaActual === 'inicio' && (
-          <Inicio vinilos={vinilos} setVistaActual={setVistaActual} abrirDetalle={abrirDetalle} />
-        )}
-        
-        {vistaActual === 'coleccion' && (
-          <Coleccion 
-            vinilos={vinilos} 
-            abrirDetalle={abrirDetalle} 
-            refrescarVinilos={obtenerVinilos}
-            irAEditar={(vinilo) => {
-              setViniloSeleccionado(vinilo)
-              setVistaActual('editar')
-            }}
+          <Inicio
+            vinilos={vinilos}
+            cargando={cargando}
+            setVistaActual={cambiarVista}
+            abrirDetalle={abrirDetalle}
           />
         )}
 
+        {vistaActual === 'coleccion' && (
+          <Coleccion vinilos={vinilos} abrirDetalle={abrirDetalle} />
+        )}
+
         {vistaActual === 'añadir' && (
-          <Anadir key="crear" setVistaActual={setVistaActual} refrescarVinilos={obtenerVinilos} />
+          <Anadir
+            key="crear"
+            setVistaActual={cambiarVista}
+            refrescarVinilos={obtenerVinilos}
+          />
         )}
 
         {vistaActual === 'editar' && viniloSeleccionado && (
-          <Anadir key="editar" setVistaActual={setVistaActual} refrescarVinilos={obtenerVinilos} viniloAEditar={viniloSeleccionado} />
+          <Anadir
+            key={viniloSeleccionado.id}
+            setVistaActual={cambiarVista}
+            refrescarVinilos={obtenerVinilos}
+            viniloAEditar={viniloSeleccionado}
+          />
         )}
 
         {vistaActual === 'detalle' && viniloSeleccionado && (
-          <Detalle 
-            vinilo={viniloSeleccionado} 
-            volver={() => setVistaActual('coleccion')} 
-            refrescarVinilos={obtenerVinilos} 
+          <Detalle
+            vinilo={viniloSeleccionado}
+            volver={() => setVistaActual('coleccion')}
+            refrescarVinilos={obtenerVinilos}
+            irAEditar={irAEditar}
+            onActualizado={setViniloSeleccionado}
           />
         )}
       </div>
 
-      <BottomNav vistaActual={vistaActual} setVistaActual={setVistaActual} />
-      
+      <BottomNav vistaActual={vistaActual} setVistaActual={cambiarVista} />
     </div>
   )
 }
-
-const estilos = {
-  app: { backgroundColor: tema.fondo, color: tema.textoPrincipal, minHeight: '100vh', fontFamily: tema.fuenteSecundaria, width: '100%', overflowX: 'hidden' },
-  contenido: { paddingBottom: '90px' }
-}
-
-export default App
