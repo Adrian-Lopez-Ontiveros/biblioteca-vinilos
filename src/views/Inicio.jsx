@@ -56,7 +56,7 @@ export default function Inicio({ vinilos, cargando, setVistaActual, abrirDetalle
                 onClick={() => abrirDetalle(vinilo)}
               >
                 <Portada src={vinilo.imagen_url} alt={vinilo.titulo} />
-                <h3 className="linea-corta">{vinilo.titulo}</h3>
+                <h3>{vinilo.titulo}</h3>
                 <p className="linea-corta">{vinilo.autor}</p>
               </button>
             ))}

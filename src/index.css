@@ -236,11 +236,15 @@ p {
 
 .tarjeta-reciente {
   flex: 0 0 156px;
+  width: 156px;
+  max-width: 156px;
+  min-width: 156px;
   scroll-snap-align: start;
   background: none;
   border: 0;
   padding: 0;
-  text-align: left;
+  text-align: center;
+  white-space: normal;
   transition: transform 0.2s ease;
 }
 
@@ -252,9 +256,16 @@ p {
 
 .tarjeta-reciente h3,
 .tarjeta-vinilo h3 {
+  width: 100%;
+  max-width: 100%;
   font-size: 17px;
   font-weight: 800;
   line-height: 1.25;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  hyphens: auto;
+  -webkit-hyphens: auto;
+  white-space: normal;
 }
 
 .tarjeta-reciente p,
@@ -448,23 +459,25 @@ p {
 
 .lista-vinilos,
 .grupo-lista {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
 }
 
 .tarjeta-vinilo {
   width: 100%;
+  min-width: 0;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 14px;
+  gap: 10px;
   background: var(--papel);
   border: 1px solid var(--borde);
-  border-left: 6px solid var(--naranja);
   border-radius: 16px;
   padding: 12px;
   box-shadow: var(--sombra);
-  text-align: left;
+  text-align: center;
+  white-space: normal;
   transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 }
 
@@ -479,23 +492,36 @@ p {
   }
 }
 
-.tarjeta-vinilo .info {
-  min-width: 0;
-  flex: 1;
+.tarjeta-vinilo .portada {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1;
 }
 
-.tarjeta-vinilo h3,
+.tarjeta-vinilo .info {
+  width: 100%;
+  min-width: 0;
+}
+
+.tarjeta-vinilo .info p {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
 .linea-corta {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  max-width: 100%;
 }
 
 .titulo-grupo {
+  grid-column: 1 / -1;
   font-family: var(--fuente-titulo);
   font-size: 22px;
   margin: 8px 2px 4px;
   color: var(--madera);
+  text-align: left;
 }
 
 .busqueda {
