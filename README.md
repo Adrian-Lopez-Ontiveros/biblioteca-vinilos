@@ -1,16 +1,28 @@
-# React + Vite
+# Los Vinilos de Edu
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+Biblioteca digital personal para gestionar una colección de vinilos.
 
-Currently, two official plugins are available:
+**Live demo:** [https://biblioteca-vinilos-ten.vercel.app/](https://biblioteca-vinilos-ten.vercel.app/)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+---
 
-## React Compiler
+## Descripción
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Aplicación web (PWA) diseñada para coleccionistas de vinilos. Permite añadir, organizar y consultar discos de forma sencilla e intuitiva, con una interfaz cálida y pensada para usarse cómodamente.
 
-## Expanding the Oxlint configuration
+## Características
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+- Añadir, editar y eliminar vinilos
+- Portadas de álbumes
+- Contadores de vinilos, artistas y géneros
+- Comentarios / notas personales sobre cada disco
+- Ordenación por tiempo sin escuchar
+- Diseño responsive y PWA (instalable en el móvil)
+- Interfaz limpia y legible
+
+## Tecnologías
+
+- React + Vite
+- Tailwind CSS
+- Supabase (base de datos)
+- Deploy en Vercel
