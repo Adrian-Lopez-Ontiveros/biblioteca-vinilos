@@ -57,7 +57,7 @@ export default function Inicio({ vinilos, cargando, setVistaActual, abrirDetalle
               >
                 <Portada src={vinilo.imagen_url} alt={vinilo.titulo} />
                 <h3>{vinilo.titulo}</h3>
-                <p className="linea-corta">{vinilo.autor}</p>
+                <p>{vinilo.autor}</p>
               </button>
             ))}
           </div>
