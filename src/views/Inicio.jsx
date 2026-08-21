@@ -1,4 +1,5 @@
 import Portada from '../components/Portada'
+import Estadisticas from '../components/Estadisticas'
 
 export default function Inicio({ vinilos, cargando, setVistaActual, abrirDetalle }) {
   const artistasUnicos = new Set(vinilos.map((v) => v.autor).filter(Boolean)).size
@@ -33,6 +34,10 @@ export default function Inicio({ vinilos, cargando, setVistaActual, abrirDetalle
           <span>géneros</span>
         </div>
       </div>
+
+      {!cargando && (
+        <Estadisticas vinilos={vinilos} abrirDetalle={abrirDetalle} />
+      )}
 
       <section>
         <div className="seccion-cabecera">

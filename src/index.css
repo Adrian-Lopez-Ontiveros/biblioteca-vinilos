@@ -196,6 +196,100 @@ p {
   font-size: 24px;
 }
 
+.seccion-estadisticas {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.caja-estadisticas {
+  box-shadow: var(--sombra);
+}
+
+.stats-resumen {
+  display: grid;
+}
+
+.stats-resumen > div {
+  padding: 10px 8px 9px;
+  text-align: center;
+  border-right: 1px solid var(--borde);
+  min-width: 0;
+}
+
+.stats-resumen > div:last-child {
+  border-right: 0;
+}
+
+.stats-resumen strong {
+  display: block;
+  font-family: var(--fuente-titulo);
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.1;
+  margin-bottom: 3px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.stats-resumen span {
+  color: var(--tinta-suave);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.25;
+  display: block;
+}
+
+.stats-disco {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 12px;
+  background: none;
+  border: 0;
+  border-top: 1px solid var(--borde);
+  text-align: left;
+  transition: background 0.2s ease;
+}
+
+@media (hover: hover) {
+  .stats-disco:hover {
+    background: rgba(194, 78, 29, 0.06);
+  }
+}
+
+.stats-disco .portada {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+}
+
+.stats-disco-texto {
+  min-width: 0;
+  flex: 1;
+}
+
+.stats-disco .kicker {
+  margin-bottom: 1px;
+}
+
+.stats-disco strong {
+  display: block;
+  font-size: 16px;
+  font-weight: 800;
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.vacio-compacto {
+  padding: 14px 16px;
+  font-size: 16px;
+}
+
 .enlace {
   background: none;
   border: 0;
@@ -941,6 +1035,7 @@ textarea.campo {
   .nav-btn,
   .tarjeta-vinilo,
   .tarjeta-reciente,
+  .stats-disco,
   .selector-foto {
     transition: none;
   }
